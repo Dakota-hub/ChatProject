@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.chat'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {}
+
+application {
+}
+
+tasks.register('runServer', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.chat.server.ChatServer'
+    workingDir = '.'
+}
+
+tasks.register('runClient', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.chat.client.ChatClient'
+    workingDir = '.'
+}

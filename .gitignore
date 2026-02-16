@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Build outputs
+build/
+app/build/
+
+# Local config
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Large files
+gradle-*.zip
+*.zip
+*.jar
+build/
+logs/
+.gradle/
+
+# Android
+captures/
+*.hprof
