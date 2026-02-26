@@ -3,6 +3,10 @@ plugins {
     id 'application'
 }
 
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
 group = 'com.chat'
 version = '1.0'
 

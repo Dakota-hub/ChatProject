@@ -7,15 +7,15 @@ import java.util.Properties;
 import java.util.Scanner;
 
 public class ChatClient {
-    private String host = "localhost";
-    private int port = 8189;
+    private String host;
+    private int port;
     private Socket socket;
     private String username;
 
-    public static void main(String[] args) {
-        ChatClient client = new ChatClient();
-        client.loadSettings();
-        client.start();
+    public ChatClient(String host, int port) {
+        this.host = host;
+        this.port = port;
+        loadSettings();
     }
 
     private void loadSettings() {
@@ -24,7 +24,12 @@ public class ChatClient {
                 Properties prop = new Properties();
                 prop.load(input);
                 host = prop.getProperty("server.host", "localhost");
-                port = Integer.parseInt(prop.getProperty("server.port", "8189"));
+                try {
+                    port = Integer.parseInt(prop.getProperty("server.port", "8189"));
+                } catch (NumberFormatException e) {
+                    System.err.println("Некорректный порт, используем 8189");
+                    port = 8189;
+                }
             }
         } catch (Exception e) {
             System.err.println("Не удалось загрузить настройки, используем localhost:8189");
@@ -35,7 +40,7 @@ public class ChatClient {
         try {
             socket = new Socket(host, port);
             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
-            Scanner console = new Scanner(System.in);
+            Scanner console = new Scanner(System.in, StandardCharsets.UTF_8);
             System.out.print("Введите имя: ");
             username = console.nextLine().trim();
             if (username.isEmpty()) username = "user" + (int) (Math.random() * 1000);
@@ -50,7 +55,8 @@ public class ChatClient {
                     while ((msg = in.readLine()) != null) {
                         processMessage(msg);
                     }
-                } catch (IOException ignored) {
+                } catch (IOException e) {
+                    System.err.println("Поток получения сообщений завершён: " + e.getMessage());
                 }
             }).start();
 
@@ -76,7 +82,10 @@ public class ChatClient {
 
     private void processMessage(String raw) {
         String[] parts = raw.split("\\$\\$\\$", 3);
-        if (parts.length < 2) return;
+        if (parts.length < 2) {
+            System.err.println("Неверный формат сообщения: " + raw);
+            return;
+        }
 
         switch (parts[0]) {
             case "MSG":
@@ -88,8 +97,10 @@ public class ChatClient {
                 System.out.println("[Вы]: " + parts[1]);
                 break;
             case "SYS":
-                System.out.println("[СИСТЕМА] " + parts[1]);
+                System.out.println("[Система] " + parts[1]);
                 break;
+            default:
+                System.err.println("Неизвестный тип сообщения: " + parts[0]);
         }
     }
 }

@@ -1,16 +1,19 @@
 package com.chat.client;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class ClientLogger {
     private static final ClientLogger INSTANCE = new ClientLogger();
-    private final String LOG_FILE = "logs/client.log";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private ClientLogger() {
-        new File("logs").mkdirs();
+        File logsDir = new File("logs"); // папка для логов.
+        if (!logsDir.exists() && !logsDir.mkdirs()) {
+            System.err.println("Не удалось создать папку для логов");
+        }
     }
 
     public static ClientLogger getInstance() {
@@ -21,10 +24,17 @@ public class ClientLogger {
         String timestamp = LocalDateTime.now().format(formatter);
         String line = "[" + timestamp + "] " + message + System.lineSeparator();
 
-        try (FileWriter fw = new FileWriter(LOG_FILE, true)) {
-            fw.write(line);
+        System.out.print(line);
+
+        try (FileOutputStream fos = new FileOutputStream("logs/client.log", true);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             BufferedWriter bw = new BufferedWriter(osw)) {
+
+            bw.write(line);
+            bw.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка записи в лог: " + e.getMessage());
+            log("КРИТИЧЕСКАЯ ОШИБКА: " + e.getMessage());
         }
     }
 }

@@ -28,7 +28,7 @@ public class ChatServer {
                 String clientId = String.valueOf(id.incrementAndGet());
                 ClientHandler handler = new ClientHandler(socket, clientId, clients);
                 clients.add(handler);
-                new Thread(handler).start();
+                new Thread(handler, "Client-" + clientId).start();
             }
         } catch (IOException e) {
             if (!Thread.currentThread().isInterrupted()) {
@@ -46,7 +46,7 @@ public class ChatServer {
             }
             ChatLogger.getInstance().log("Сервер остановлен");
         } catch (IOException e) {
-            e.printStackTrace();
+            ChatLogger.getInstance().log("Ошибка при остановке: " + e.getMessage());
         }
     }
 

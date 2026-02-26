@@ -15,6 +15,7 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket, String clientId, CopyOnWriteArrayList<ClientHandler> clients) {
         this.socket = socket;
         this.clients = clients;
+        ChatLogger.getInstance().log("Новое подключение с ID: " + clientId);
     }
 
     @Override
@@ -29,7 +30,7 @@ public class ClientHandler implements Runnable {
             }
 
             ChatLogger.getInstance().log("Подключился: " + username);
-            broadcast("SYS|Пользователь " + username + " присоединился к чату");
+            broadcast("SYS$$$Пользователь " + username + " присоединился к чату");
 
             String message;
             while ((message = in.readLine()) != null) {
@@ -48,11 +49,16 @@ public class ClientHandler implements Runnable {
 
     private void broadcast(String message) {
         for (ClientHandler c : clients) {
-            if (c != this) {
+            if (c != this && c != null && c.out != null) {
                 c.sendMessage(message);
             }
         }
-        this.sendMessage("MY$$$" + message.split("\\$\\$\\$", 3)[2]);
+        if (message.startsWith("MSG$$$")) {
+            String[] parts = message.split("\\$\\$\\$", 3);
+            if (parts.length >= 3) {
+                this.sendMessage("MY$$$" + parts[2]);
+            }
+        }
     }
 
     private void sendMessage(String message) {
@@ -65,13 +71,17 @@ public class ClientHandler implements Runnable {
 
     private void disconnect() {
         try {
-            clients.remove(this);
-            in.close();
-            out.close();
-            socket.close();
+            if (clients != null) {
+                clients.remove(this);
+            }
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (socket != null) socket.close();
+
             ChatLogger.getInstance().log("Отключился: " + username);
-            broadcast("SYS|Пользователь " + username + " покинул чат");
-        } catch (IOException ignored) {
+            broadcast("SYS$$$Пользователь " + username + " покинул чат");
+        } catch (IOException e) {
+            ChatLogger.getInstance().log("Ошибка при отключении: " + e.getMessage());
         }
     }
 }

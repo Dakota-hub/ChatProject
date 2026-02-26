@@ -7,11 +7,13 @@ import java.time.format.DateTimeFormatter;
 
 public class ChatLogger {
     private static final ChatLogger INSTANCE = new ChatLogger();
-    private final String LOG_FILE = "logs/server.log";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private ChatLogger() {
-        new File("logs").mkdirs(); // создаём папку logs
+        File logsDir = new File("logs");
+        if (!logsDir.exists() && !logsDir.mkdirs()) {
+            System.err.println("Не удалось создать папку для логов");
+        }
     }
 
     public static ChatLogger getInstance() {
@@ -22,15 +24,17 @@ public class ChatLogger {
         String timestamp = LocalDateTime.now().format(formatter);
         String line = "[" + timestamp + "] " + message + System.lineSeparator();
 
-        // В консоль
         System.out.print(line);
 
-        // В файл
-        try (FileOutputStream fos = new FileOutputStream(LOG_FILE, true);
+        try (FileOutputStream fos = new FileOutputStream("logs/server.log", true);
              OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
              BufferedWriter bw = new BufferedWriter(osw)) {
+
+            bw.write(line);
+            bw.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка записи в лог: " + e.getMessage());
+            log("КРИТИЧЕСКАЯ ОШИБКА: " + e.getMessage());
         }
     }
 }
